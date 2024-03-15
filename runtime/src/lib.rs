@@ -249,6 +249,17 @@ impl pallet_balances::Config for Runtime {
 	type MaxHolds = ();
 }
 
+impl ans::Config for Runtime {
+	type MaxLength = ConstU32<100>;
+	type MinLength = ConstU32<5>;
+	type RuntimeEvent = RuntimeEvent;
+
+    fn account_id_from_name(name: Vec<u8>) -> Option<Self::AccountId> {
+        // Lookup the account ID associated with the given name
+        ans::<AnsOf<T>>::get(name).map(Into::into)
+    }
+}
+
 parameter_types! {
 	pub FeeMultiplier: Multiplier = Multiplier::one();
 }
@@ -286,6 +297,7 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
+		Ans: ans
 	}
 );
 
