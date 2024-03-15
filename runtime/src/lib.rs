@@ -150,6 +150,37 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
+// pub struct NativeOrAnsLookup;
+
+// impl StaticLookup for NativeOrAnsLookup {
+//     type Source = MultiAddress<AccountId, AccountIndex>;
+//     type Target = AccountId;
+
+//     fn lookup(x: Self::Source) -> Result<Self::Target, sp_runtime::traits::LookupError> {
+//         match x {
+//             MultiAddress::Id(i) => Ok(i),
+//             MultiAddress::Address32(_) => {
+//                 // You can implement this based on your custom logic
+//                 Err(sp_runtime::traits::LookupError::SourceNotCallable)
+//             }
+//             MultiAddress::Raw(name) => {
+//                 // Call the NameReservation pallet to get the account ID
+//                 let account_id = Ans::account_id_from_name(name);
+				
+// 				match account_id {
+// 					Some(account) => Ok(account),
+// 					None => sp_runtime::traits::LookupError::SourceNotFound
+// 				}
+//             }
+//             _ => Err(sp_runtime::traits::LookupError::SourceNotCallable),
+//         }
+//     }
+
+//     fn unlookup(x: Self::Target) -> Self::Source {
+//         MultiAddress::Id(x)
+//     }
+// }
+
 // Configure FRAME pallets to include in runtime.
 
 impl frame_system::Config for Runtime {
@@ -166,7 +197,7 @@ impl frame_system::Config for Runtime {
 	/// The aggregated dispatch type that is available for extrinsics.
 	type RuntimeCall = RuntimeCall;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
-	type Lookup = AccountIdLookup<AccountId, ()>;
+	type Lookup =  AccountIdLookup<AccountId, ()>; // NativeOrAnsLookup; //AccountIdLookup<AccountId, ()>;
 	/// The type for storing how many extrinsics an account has signed.
 	type Nonce = Nonce;
 	/// The type for hashing blocks and tries.
@@ -253,11 +284,6 @@ impl ans::Config for Runtime {
 	type MaxLength = ConstU32<100>;
 	type MinLength = ConstU32<5>;
 	type RuntimeEvent = RuntimeEvent;
-
-    fn account_id_from_name(name: Vec<u8>) -> Option<Self::AccountId> {
-        // Lookup the account ID associated with the given name
-        ans::<AnsOf<T>>::get(name).map(Into::into)
-    }
 }
 
 parameter_types! {

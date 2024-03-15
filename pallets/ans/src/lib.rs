@@ -21,9 +21,6 @@ pub mod pallet {
 		/// The maximum length a name may be.
 		#[pallet::constant]
 		type MaxLength: Get<u32>;
-		
-		// Custom conversion from name to AccountId
-		fn account_id_from_name(name: Vec<u8>) -> Option<Self::AccountId>;
 	}
 
 	#[pallet::event]
@@ -68,8 +65,19 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
+	pub fn account_id_from_name<T: Config>(name: Vec<u8>) -> Option<T::AccountId> {
+		let bounded_name: Result<BoundedVec<_, _>, _> = name.clone().try_into().map_err(|_| ());
+		let bounded_name = match bounded_name {
+			Ok(bn) => bn,
+			Err(_) => return None, // Return None if conversion fails
+		};
+	
+		<AnsOf<T>>::get(bounded_name)
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+
 		#[pallet::call_index(0)]
 		#[pallet::weight({50_000_000})]
 		pub fn reserve(origin: OriginFor<T>, name: Vec<u8>) -> DispatchResult {
