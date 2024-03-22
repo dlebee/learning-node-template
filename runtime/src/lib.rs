@@ -11,12 +11,9 @@ use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{
-		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, Verify,
-	},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
+	create_runtime_str, generic, impl_opaque_keys, traits::{
+		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, Verify, StaticLookup
+	}, transaction_validity::{TransactionSource, TransactionValidity}, ApplyExtrinsicResult, MultiAddress, MultiSignature
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -150,38 +147,29 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
-// pub struct NativeOrAnsLookup;
+pub struct NativeOrAnsAddressLookup;
+impl StaticLookup for NativeOrAnsAddressLookup {
+	type Source = MultiAddress<AccountId, ()>;
+    type Target = AccountId;
 
-// impl StaticLookup for NativeOrAnsLookup {
-//     type Source = MultiAddress<AccountId, AccountIndex>;
-//     type Target = AccountId;
+    fn lookup(source: Self::Source) -> Result<Self::Target, sp_runtime::traits::LookupError> {
+		match source {
+            MultiAddress::Id(i) => Ok(i),
+            MultiAddress::Address32(i) => Ok(AccountId::from(i)),
+			/*MultiAddress::Raw(raw) => {
+				match Ans::account_id_from_name(raw) {
+					Some(account) => Ok(account),
+					None => Err(sp_runtime::traits::LookupError)
+				}
+			},*/
+            _ => Err(sp_runtime::traits::LookupError),
+        }
+    }
 
-//     fn lookup(x: Self::Source) -> Result<Self::Target, sp_runtime::traits::LookupError> {
-//         match x {
-//             MultiAddress::Id(i) => Ok(i),
-//             MultiAddress::Address32(_) => {
-//                 // You can implement this based on your custom logic
-//                 Err(sp_runtime::traits::LookupError::SourceNotCallable)
-//             }
-//             MultiAddress::Raw(name) => {
-//                 // Call the NameReservation pallet to get the account ID
-//                 let account_id = Ans::account_id_from_name(name);
-				
-// 				match account_id {
-// 					Some(account) => Ok(account),
-// 					None => sp_runtime::traits::LookupError::SourceNotFound
-// 				}
-//             }
-//             _ => Err(sp_runtime::traits::LookupError::SourceNotCallable),
-//         }
-//     }
-
-//     fn unlookup(x: Self::Target) -> Self::Source {
-//         MultiAddress::Id(x)
-//     }
-// }
-
-// Configure FRAME pallets to include in runtime.
+    fn unlookup(target: Self::Target) -> Self::Source {
+		MultiAddress::Id(target)
+    }
+}
 
 impl frame_system::Config for Runtime {
 	/// The basic call filter to use in dispatchable.
@@ -197,7 +185,7 @@ impl frame_system::Config for Runtime {
 	/// The aggregated dispatch type that is available for extrinsics.
 	type RuntimeCall = RuntimeCall;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
-	type Lookup =  AccountIdLookup<AccountId, ()>; // NativeOrAnsLookup; //AccountIdLookup<AccountId, ()>;
+	type Lookup = AccountIdLookup<AccountId, ()>;
 	/// The type for storing how many extrinsics an account has signed.
 	type Nonce = Nonce;
 	/// The type for hashing blocks and tries.
@@ -280,8 +268,10 @@ impl pallet_balances::Config for Runtime {
 	type MaxHolds = ();
 }
 
+pub const MAX_ANS_LENGTH: u32 = 50;
+
 impl ans::Config for Runtime {
-	type MaxLength = ConstU32<100>;
+	type MaxLength = ConstU32<MAX_ANS_LENGTH>;
 	type MinLength = ConstU32<5>;
 	type RuntimeEvent = RuntimeEvent;
 }

@@ -59,6 +59,7 @@ pub mod pallet {
 
 	/// This maps names to accounts.
 	#[pallet::storage]
+	//#[pallet::getter(fn get_entries)]
 	pub(super) type AnsOf<T: Config> =
 		StorageMap<_, Twox64Concat, BoundedVec<u8, T::MaxLength>, T::AccountId>;
 
