@@ -59,26 +59,18 @@ pub mod pallet {
 
 	/// This maps names to accounts.
 	#[pallet::storage]
-	//#[pallet::getter(fn get_entries)]
+	#[pallet::getter(fn get_entry)]
 	pub(super) type AnsOf<T: Config> =
 		StorageMap<_, Twox64Concat, BoundedVec<u8, T::MaxLength>, T::AccountId>;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	pub fn account_id_from_name<T: Config>(name: Vec<u8>) -> Option<T::AccountId> {
-		let bounded_name: Result<BoundedVec<_, _>, _> = name.clone().try_into().map_err(|_| ());
-		let bounded_name = match bounded_name {
-			Ok(bn) => bn,
-			Err(_) => return None, // Return None if conversion fails
-		};
-	
-		<AnsOf<T>>::get(bounded_name)
-	}
+
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-
+	
 		#[pallet::call_index(0)]
 		#[pallet::weight({50_000_000})]
 		pub fn reserve(origin: OriginFor<T>, name: Vec<u8>) -> DispatchResult {

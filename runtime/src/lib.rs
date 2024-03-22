@@ -6,6 +6,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use frame_support::storage::hashed::get;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -156,12 +157,20 @@ impl StaticLookup for NativeOrAnsAddressLookup {
 		match source {
             MultiAddress::Id(i) => Ok(i),
             MultiAddress::Address32(i) => Ok(AccountId::from(i)),
-			/*MultiAddress::Raw(raw) => {
-				match Ans::account_id_from_name(raw) {
+			MultiAddress::Raw(raw) => {
+
+				let bounded_name: sp_runtime::BoundedVec<_, _> = raw.clone().try_into().map_err(|_| sp_runtime::traits::LookupError)?;
+
+				let account_lookup = ans::Pallet::<Runtime>::get_entry(bounded_name);
+
+				//let account_lookup = Runtime::Ans::AnsOf::get(bounded_name);
+
+				// Read the value from the storage map
+				match account_lookup {
 					Some(account) => Ok(account),
 					None => Err(sp_runtime::traits::LookupError)
-				}
-			},*/
+				}		
+			},
             _ => Err(sp_runtime::traits::LookupError),
         }
     }
@@ -185,7 +194,7 @@ impl frame_system::Config for Runtime {
 	/// The aggregated dispatch type that is available for extrinsics.
 	type RuntimeCall = RuntimeCall;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
-	type Lookup = AccountIdLookup<AccountId, ()>;
+	type Lookup = NativeOrAnsAddressLookup; // AccountIdLookup<AccountId, ()>;
 	/// The type for storing how many extrinsics an account has signed.
 	type Nonce = Nonce;
 	/// The type for hashing blocks and tries.
