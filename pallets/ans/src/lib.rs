@@ -99,7 +99,7 @@ use frame_support::{pallet_prelude::*, storage::child::exists};
 
 	#[pallet::storage]
 	#[pallet::getter(fn get_reservation_fee)]
-	pub type ReservationFee<T> = StorageValue<_, BalanceOf<T>, OptionQuery>;
+	pub type ReservationFee<T> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn get_reservation_account)]
@@ -126,7 +126,7 @@ use frame_support::{pallet_prelude::*, storage::child::exists};
 					return frame_support::fail!(Error::<T>::ReserveAccountNotConfigured);
 				},
 				Some(reservation_account) => {
-					let fee = ReservationFee::<T>::get().unwrap();
+					let fee = ReservationFee::<T>::get();
 					T::Currency::transfer(&sender, &reservation_account, fee, frame_support::traits::ExistenceRequirement::AllowDeath)?;
 					<AnsOf<T>>::insert(&bounded_name, sender.clone() );
 					Self::deposit_event(Event::<T>::Reserved { who: sender, name: name });
