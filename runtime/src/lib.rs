@@ -6,7 +6,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use frame_support::storage::hashed::get;
+use frame_support::{storage::hashed::get, traits::Currency};
 use pallet_grandpa::AuthorityId as GrandpaId;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -283,6 +283,7 @@ impl ans::Config for Runtime {
 	type MaxLength = ConstU32<MAX_ANS_LENGTH>;
 	type MinLength = ConstU32<5>;
 	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
 }
 
 parameter_types! {

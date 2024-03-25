@@ -1,6 +1,6 @@
 use node_template_runtime::{
 	AccountId, AuraConfig, BalancesConfig, GrandpaConfig, RuntimeGenesisConfig, Signature,
-	SudoConfig, SystemConfig, WASM_BINARY,
+	SudoConfig, SystemConfig, WASM_BINARY, AnsConfig
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -59,7 +59,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 				],
-				true,
+				true
 			)
 		},
 		// Bootnodes
@@ -72,7 +72,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		// Properties
 		None,
 		// Extensions
-		None,
+		None
 	))
 }
 
@@ -152,6 +152,10 @@ fn testnet_genesis(
 		sudo: SudoConfig {
 			// Assign network admin rights.
 			key: Some(root_key),
+		},
+		ans: AnsConfig {
+			reservation_fee: 25_000_000_000_000u128,
+			reservation_account: Some(get_account_id_from_seed::<sr25519::Public>("Dave"))
 		},
 		transaction_payment: Default::default(),
 	}
